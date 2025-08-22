@@ -12,10 +12,10 @@ builder.Services.AddMassTransit(c =>
     {
         f.Host(b.GetRequiredService<IConfiguration>().GetConnectionString("rabbitmq"));
         
-        f.ReceiveEndpoint(TestSaga.QueueName, e =>
+        f.ReceiveEndpoint(TestSaga.QueueName, ec =>
         {
-            e.PrefetchCount = 1;
-            e.ConfigureSaga<TestSagaState>(b);
+            ec.PrefetchCount = 1;
+            ec.ConfigureSaga<TestSagaState>(b);
         });
         
         f.ConfigureEndpoints(b);

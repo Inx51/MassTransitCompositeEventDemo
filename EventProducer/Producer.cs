@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Contracts;
 using MassTransit;
 using Microsoft.Extensions.Hosting;
@@ -26,7 +25,6 @@ public class Producer : BackgroundService
         {
             i++;
             
-            var initHappened = new InitHappened{Id = i};
             var thingOneHappened = new ThingOneHappened{Id = i};
             var thingTwoHappened = new ThingTwoHappened{Id = i};
 
@@ -35,7 +33,6 @@ public class Producer : BackgroundService
             //Simulate the inconsistent order of events.
             if (messageToSend >= 5)
             {
-                await _publishEndpoint.Publish(initHappened, stoppingToken);
                 await _publishEndpoint.Publish(thingOneHappened, stoppingToken);
                 await _publishEndpoint.Publish(thingTwoHappened, stoppingToken);
                 
@@ -43,7 +40,6 @@ public class Producer : BackgroundService
             }
             else
             {
-                await _publishEndpoint.Publish(initHappened, stoppingToken);
                 await _publishEndpoint.Publish(thingTwoHappened, stoppingToken);
                 await _publishEndpoint.Publish(thingOneHappened, stoppingToken);
                 
