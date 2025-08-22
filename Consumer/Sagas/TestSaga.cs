@@ -16,6 +16,8 @@ public class TestSaga : MassTransitStateMachine<TestSagaState>
     
     public State AwaitingThingTwo { get; set; }
     
+    public State Done { get; set; }
+    
     public TestSaga(ILogger<TestSaga> logger)
     {
         InstanceState(x => x.CurrentState);
@@ -42,6 +44,18 @@ public class TestSaga : MassTransitStateMachine<TestSagaState>
         );
         
         CompositeEvent(() => Finalize, x => x.FinalizeStatus, ThingOneHappened, ThingTwoHappened);
+
+        During(
+            AwaitingThingOne,
+            When(ThingTwoHappened)
+                .TransitionTo(Done)
+        );
+        
+        During(
+            AwaitingThingTwo,
+            When(ThingOneHappened)
+                .TransitionTo(Done)
+        );
         
         DuringAny(
             When(Finalize)
