@@ -50,7 +50,26 @@ public class TestSaga : MassTransitStateMachine<TestSagaState>
         DuringAny(
             When(Finalize)
                 .Then(t => logger.LogInformation("ID: {id}, [Finalize]", t.Saga.Id))
-                .Finalize());
+                .Finalize(),
+            When(ThingOneHappened)
+                .Then(t =>
+                {
+                    if (t.Saga.FinalizeStatus == 3)
+                        logger.LogInformation("ID: {id}, [ThingOneHappened] -> TriggeringCompositeEventFinalize", t.Message.Id);
+                    else
+                        logger.LogInformation("ID: {id}, [ThingOneHappened]", t.Message.Id);
+                }
+            ),
+            When(ThingTwoHappened)
+                .Then(t =>
+                {
+                    if (t.Saga.FinalizeStatus == 3)
+                        logger.LogInformation("ID: {id}, [ThingTwoHappened] -> TriggeringCompositeEventFinalize", t.Message.Id);
+                    else
+                        logger.LogInformation("ID: {id}, [ThingTwoHappened]", t.Message.Id);
+                }
+            )
+        );
     }
 }
 
