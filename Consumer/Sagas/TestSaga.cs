@@ -42,27 +42,6 @@ public class TestSaga : MassTransitStateMachine<TestSagaState>
         CompositeEvent(() => Finalize, x => x.FinalizeStatus, CompositeEventOptions.IncludeInitial, ThingOneHappened, ThingTwoHappened);
         
         Initially(
-            When(ThingOneHappened)
-                .Then
-                (
-                    t =>
-                    {
-                        t.Saga.Id = t.Message.Id;
-                        logger.LogInformation("ID: {id}, [ThingOneHappened]", t.Message.Id);
-                    }
-                ),
-            When(ThingTwoHappened)
-                .Then
-                (
-                    t =>
-                    {
-                        t.Saga.Id = t.Message.Id;
-                        logger.LogInformation("ID: {id}, [ThingTwoHappened]", t.Message.Id);
-                    }
-                )
-        );
-        
-        DuringAny(
             When(Finalize)
                 .Then(t => logger.LogInformation("ID: {id}, Finalizing!", t.Saga.Id))
                 .Finalize()
