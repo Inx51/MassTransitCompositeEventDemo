@@ -13,10 +13,13 @@ var rabbit = builder.AddRabbitMQ
 
 var postgres = builder.AddPostgres("postgres");
 
-var eventProducer = builder.AddProject<EventProducer>("event-producer")
+var consumer = builder.AddProject<Consumer>("consumer")
+    .WaitFor(rabbit)
     .WithReference(rabbit);
 
-var consumer = builder.AddProject<Consumer>("consumer")
+var eventProducer = builder.AddProject<EventProducer>("event-producer")
+    .WaitFor(rabbit)
+    .WaitFor(consumer)
     .WithReference(rabbit);
 
 builder.Build().Run();

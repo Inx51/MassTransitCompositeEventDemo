@@ -19,11 +19,15 @@ public class Producer : BackgroundService
     
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        int i = 0;
+        var i = 0;
         var rand = new Random();
         while (!stoppingToken.IsCancellationRequested)
         {
             i++;
+            // await _publishEndpoint.Publish(initHappened, stoppingToken);
+            // await Task.Delay(1000, stoppingToken);
+            
+            var initHappened = new InitHappened{Id = i};
             var thingOneHappened = new ThingOneHappened{Id = i};
             var thingTwoHappened = new ThingTwoHappened{Id = i};
 
@@ -32,6 +36,7 @@ public class Producer : BackgroundService
             //Simulate the inconsistent order of events.
             if (messageToSend >= 5)
             {
+                await _publishEndpoint.Publish(initHappened, stoppingToken);
                 await _publishEndpoint.Publish(thingOneHappened, stoppingToken);
                 await _publishEndpoint.Publish(thingTwoHappened, stoppingToken);
                 
@@ -39,6 +44,7 @@ public class Producer : BackgroundService
             }
             else
             {
+                await _publishEndpoint.Publish(initHappened, stoppingToken);
                 await _publishEndpoint.Publish(thingTwoHappened, stoppingToken);
                 await _publishEndpoint.Publish(thingOneHappened, stoppingToken);
                 

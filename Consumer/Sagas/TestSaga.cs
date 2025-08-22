@@ -6,21 +6,25 @@ namespace Consumer.Sagas;
 
 public class TestSaga : MassTransitStateMachine<TestSagaState>
 {
+    public Event<InitHappened> InitHappened { get; set; }
+    
     public Event<ThingOneHappened> ThingOneHappened { get; set; }
     
     public Event<ThingTwoHappened> ThingTwoHappened { get; set; }
 
     public Event Finalize { get; set; }
     
-    public State AwaitingThingOne { get; set; }
-    
-    public State AwaitingThingTwo { get; set; }
-    
-    public State Done { get; set; }
+    public State AwaitingOtherThings { get; set; }
     
     public TestSaga(ILogger<TestSaga> logger)
     {
         InstanceState(x => x.CurrentState);
+        
+        Event
+        (
+            () => InitHappened,
+            x => x.CorrelateBy((instance, context) => context.Message.Id == instance.Id).SelectId(context => context.MessageId ?? Guid.NewGuid())
+        );
         
         Event
         (
@@ -34,38 +38,14 @@ public class TestSaga : MassTransitStateMachine<TestSagaState>
             x => x.CorrelateBy((instance, context) => context.Message.Id == instance.Id).SelectId(context => context.MessageId ?? Guid.NewGuid())
         );
         
-        Initially(
-                When(ThingOneHappened)
-                    .Then(t => t.Saga.Id = t.Message.Id)
-                    .Then(t => logger.LogInformation("ID: {id}, [ThingOneHappened] -> AwaitingThingTwo", t.Saga.Id))
-                    .TransitionTo(AwaitingThingTwo),
-                When(ThingTwoHappened)
-                    .Then(t => t.Saga.Id = t.Message.Id)
-                    .Then(t => logger.LogInformation("ID: {id}, [ThingTwoHappened] -> AwaitingThingOne", t.Saga.Id))
-                    .TransitionTo(AwaitingThingOne)
-        );
-        
-        During(
-            AwaitingThingTwo,
-            When(ThingTwoHappened)
-                .Then(t => logger.LogInformation("ID: {id}, [AwaitingThingTwo] - [ThingTwoHappened] -> Done ", t.Saga.Id))
-                .TransitionTo(Done)
-        );
-
-        During(
-            AwaitingThingOne,
-            When(ThingOneHappened)
-                .Then(t => logger.LogInformation("ID: {id}, [AwaitingThingOne] - [ThingOneHappened] -> Done ", t.Saga.Id))
-                .TransitionTo(Done)
-        );
-        
-        WhenEnter(
-            Done, 
-            x => x
-                .Then(t => logger.LogInformation("ID: {id},Enter: [Done]", t.Saga.Id))
-        );
-        
         CompositeEvent(() => Finalize, x => x.FinalizeStatus, ThingOneHappened, ThingTwoHappened);
+        
+        Initially(
+                When(InitHappened)
+                    .Then(t => t.Saga.Id = t.Message.Id)
+                    .Then(t => logger.LogInformation("ID: {id}, [InitHappened] -> AwaitingOtherThings", t.Message.Id))
+                    .TransitionTo(AwaitingOtherThings)
+        );
         
         DuringAny(
             When(Finalize)
