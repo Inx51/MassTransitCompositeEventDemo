@@ -34,8 +34,6 @@ public class TestSaga : MassTransitStateMachine<TestSagaState>
             x => x.CorrelateBy((instance, context) => context.Message.Id == instance.Id).SelectId(context => context.MessageId ?? Guid.NewGuid())
         );
         
-        CompositeEvent(() => Finalize, x => x.FinalizeStatus, ThingOneHappened, ThingTwoHappened);
-        
         Initially(
                 When(ThingOneHappened)
                     .Then(t => t.Saga.Id = t.Message.Id)
@@ -60,6 +58,14 @@ public class TestSaga : MassTransitStateMachine<TestSagaState>
                 .Then(t => logger.LogInformation("ID: {id}, [AwaitingThingOne] - [ThingOneHappened] -> Done ", t.Saga.Id))
                 .TransitionTo(Done)
         );
+        
+        WhenEnter(
+            Done, 
+            x => x
+                .Then(t => logger.LogInformation("ID: {id},Enter: [Done]", t.Saga.Id))
+        );
+        
+        CompositeEvent(() => Finalize, x => x.FinalizeStatus, ThingOneHappened, ThingTwoHappened);
         
         DuringAny(
             When(Finalize)
