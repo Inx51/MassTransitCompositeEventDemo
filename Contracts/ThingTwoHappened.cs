@@ -2,5 +2,5 @@ namespace Contracts;
 
 public class ThingTwoHappened
 {
-    public string? Id { get; set; }
+    public int? Id { get; set; }
 }

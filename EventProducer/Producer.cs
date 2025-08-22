@@ -20,22 +20,30 @@ public class Producer : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         int i = 0;
+        var rand = new Random();
         while (!stoppingToken.IsCancellationRequested)
         {
             i++;
-            var id = Guid.NewGuid().ToString();
-            var thingOneHappened = new ThingOneHappened{Id = id};
-            var thingTwoHappened = new ThingTwoHappened{Id = id};
+            var thingOneHappened = new ThingOneHappened{Id = i};
+            var thingTwoHappened = new ThingTwoHappened{Id = i};
 
-            await _publishEndpoint.Publish(thingOneHappened, stoppingToken);
-            
-            await Task.Delay(1000, stoppingToken);
-            
-            await _publishEndpoint.Publish(thingTwoHappened, stoppingToken);
+            var messageToSend = rand.Next(0, 10);
 
-            // Task.WaitAll([pubOne, pubTwo], stoppingToken);
-            
-            _logger.LogInformation("Published events! - {i} times", i);
+            //Simulate the inconsistent order of events.
+            if (messageToSend >= 5)
+            {
+                await _publishEndpoint.Publish(thingOneHappened, stoppingToken);
+                await _publishEndpoint.Publish(thingTwoHappened, stoppingToken);
+                
+                _logger.LogInformation("ID: {id}, [ThingOneHappened, ThingTwoHappened]", i);
+            }
+            else
+            {
+                await _publishEndpoint.Publish(thingTwoHappened, stoppingToken);
+                await _publishEndpoint.Publish(thingOneHappened, stoppingToken);
+                
+                _logger.LogInformation("ID: {id}, [ThingTwoHappened, ThingOneHappened]", i);
+            }
 
             await Task.Delay(5000, stoppingToken);
         }
