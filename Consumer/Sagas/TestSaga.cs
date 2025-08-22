@@ -6,6 +6,8 @@ namespace Consumer.Sagas;
 
 public class TestSaga : MassTransitStateMachine<TestSagaState>
 {
+    public const string QueueName = "TestSaga";
+    
     public Event<InitHappened> InitHappened { get; set; }
     
     public Event<ThingOneHappened> ThingOneHappened { get; set; }

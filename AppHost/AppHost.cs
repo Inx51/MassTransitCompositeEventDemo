@@ -11,8 +11,6 @@ var rabbit = builder.AddRabbitMQ
     )
     .WithManagementPlugin();
 
-var postgres = builder.AddPostgres("postgres");
-
 var consumer = builder.AddProject<Consumer>("consumer")
     .WaitFor(rabbit)
     .WithReference(rabbit);

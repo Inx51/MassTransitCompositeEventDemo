@@ -21,9 +21,7 @@ public class Producer : BackgroundService
     {
         var i = 0;
         var rand = new Random();
-        //Adding a delay to make sure that rabbitmq has started. (even if it shouldn't be necessary since it's already configured by Aspire)
-        //Added to debug why the composite event isn't triggered for the first two instances.
-        await Task.Delay(20*1000, stoppingToken);
+
         while (!stoppingToken.IsCancellationRequested)
         {
             i++;
@@ -52,7 +50,7 @@ public class Producer : BackgroundService
                 _logger.LogInformation("ID: {id}, [InitHappened, ThingTwoHappened, ThingOneHappened]", i);
             }
 
-            await Task.Delay(5000, stoppingToken);
+            await Task.Delay(2000, stoppingToken);
         }
     }
 }
